@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#11192a">
+<title>Ferdy — Gacha Room</title>
+<style>
+:root{--ink:#edf3ff;--muted:#aebbd0;--line:#ffffff20;--panel:#111a2bd9;--cyan:#8de7f0;--blue:#8baaff;--gold:#f7d58a}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:#101827;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;z-index:-2;background:linear-gradient(90deg,rgba(8,13,24,.88),rgba(8,13,24,.67) 52%,rgba(8,13,24,.84)),url("https://static.wikia.nocookie.net/tensei-shitara-slime-datta-ken/images/6/6b/Rimuru_Tempest_Anime.png") center 24%/cover no-repeat;transform:scale(1.02)}
+body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(0deg,#0a101c 0%,transparent 40%,#0a101c55 100%)}
+.page{width:min(720px,100%);margin:auto;padding:26px 18px 30px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:48px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
+.brand-mark{width:34px;height:34px;display:grid;place-items:center;border:1px solid #ffffff40;border-radius:11px;background:#ffffff12}
+.owner{font-size:12px;color:#d5deee;border:1px solid var(--line);padding:7px 11px;border-radius:999px;background:#0c1424a8}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:2.5px;color:var(--cyan);font-weight:800}
+h1{font-size:clamp(34px,8vw,56px);line-height:1.02;letter-spacing:-1.8px;margin:12px 0 14px;font-weight:850}
+h1 span{color:var(--cyan)}
+.lead{max-width:500px;color:#c3cfe1;line-height:1.65;font-size:14px;margin:0 0 28px}
+.machine{background:var(--panel);border:1px solid #ffffff24;border-radius:22px;padding:clamp(15px,4vw,25px);box-shadow:0 24px 80px #0005;backdrop-filter:blur(18px)}
+.machine-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px}
+.machine-head strong{font-size:14px}
+.pill{font-size:11px;color:var(--cyan);border:1px solid #8de7f044;border-radius:999px;padding:6px 9px;white-space:nowrap}
+.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-bottom:20px}
+.card{min-width:0;min-height:105px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:1px solid #ffffff20;border-radius:14px;background:linear-gradient(160deg,#ffffff12,#ffffff05);transition:background .18s,border-color .18s,transform .18s;position:relative;overflow:hidden}
+.card .emoji{font-size:26px;filter:saturate(.8)}
+.card .num{font-size:10px;letter-spacing:1px;color:#bdc9dc;font-weight:800}
+.card.active{border-color:var(--cyan);background:#5cc4d42c;transform:translateY(-3px)}
+.card.active:after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 22px #8de7f02b;pointer-events:none}
+.card.winner{border-color:var(--gold);background:#f7d58a25;box-shadow:0 0 0 1px #f7d58a30}
+.card.winner .num{color:var(--gold)}
+button{font:inherit;cursor:pointer}
+#spinBtn{width:100%;border:0;border-radius:13px;padding:15px 18px;background:var(--cyan);color:#10202a;font-weight:850;font-size:14px;letter-spacing:.5px;transition:transform .15s,filter .15s}
+#spinBtn:hover{filter:brightness(1.06)}
+#spinBtn:active{transform:scale(.99)}
+#spinBtn:disabled{opacity:.55;cursor:wait}
+.status{min-height:23px;text-align:center;color:#bac8dc;font-size:12px;margin:14px 0 0}
+.result{display:none;margin-top:20px;padding:18px;border:1px solid #f7d58a55;border-radius:16px;background:#101827bd}
+.result.show{display:block;animation:appear .4s ease both}
+.result-top{display:flex;align-items:center;gap:12px;margin-bottom:14px;text-align:left}
+.trophy{width:46px;height:46px;display:grid;place-items:center;border-radius:13px;background:#f7d58a1a;font-size:24px}
+.result small{color:var(--gold);font-size:10px;letter-spacing:1.5px;font-weight:800}
+.result h2{font-size:22px;margin:4px 0 0;overflow-wrap:anywhere}
+#prizeNumber{font-size:12px;color:var(--muted);margin:0 0 14px}
+video{width:100%;max-height:52vh;background:#080c12;border-radius:11px;display:block}
+#againBtn{width:100%;margin-top:13px;padding:12px;border:1px solid #ffffff25;border-radius:11px;color:var(--ink);background:#ffffff0d;font-weight:750}
+.footer{display:flex;justify-content:space-between;gap:12px;margin-top:18px;font-size:11px;color:#a6b4c9}
+.footer span:last-child{text-align:right}
+.confetti{position:fixed;top:-15px;width:7px;height:11px;z-index:5;pointer-events:none;animation:fall var(--duration) linear forwards;left:var(--left);background:var(--color);transform:rotate(var(--rotate))}
+@keyframes fall{to{transform:translate3d(var(--drift),110vh,0) rotate(720deg);opacity:.15}}
+@keyframes appear{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:430px){.page{padding:19px 13px 24px}.topbar{margin-bottom:38px}.cards{gap:5px}.card{min-height:88px;border-radius:11px}.card .emoji{font-size:23px}.card .num{font-size:9px;letter-spacing:.5px}.machine{border-radius:18px}.footer{font-size:10px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">✦</span><span>FERDY<span style="color:var(--cyan)">.ROOM</span></span></div>
+    <span class="owner">PERSONAL GACHA</span>
+  </header>
+  <section>
+    <div class="eyebrow">A little luck, a little chaos</div>
+    <h1>Gacha <span>Room.</span></h1>
+    <p class="lead">Satu putaran, satu hadiah acak. Tekan tombolnya dan lihat hadiah mana yang bakal muncul kali ini.</p>
+  </section>
+  <section class="machine" aria-label="Mesin gacha">
+    <div class="machine-head"><strong>DAFTAR HADIAH</strong><span class="pill">● SYSTEM ONLINE</span></div>
+    <div class="cards" id="cards">
+      <div class="card"><span class="emoji">🎁</span><span class="num">DROP 01</span></div>
+      <div class="card"><span class="emoji">🎁</span><span class="num">DROP 02</span></div>
+      <div class="card"><span class="emoji">🎁</span><span class="num">DROP 03</span></div>
+      <div class="card"><span class="emoji">🎁</span><span class="num">DROP 04</span></div>
+      <div class="card"><span class="emoji">🎁</span><span class="num">DROP 05</span></div>
+    </div>
+    <button id="spinBtn" type="button">MULAI PUTARAN&nbsp; ↗</button>
+    <div class="status" id="status" aria-live="polite">Sistem siap. Semoga hoki, Ferdy.</div>
+    <section class="result" id="result" aria-live="polite">
+      <div class="result-top"><div class="trophy">✦</div><div><small>HADIAH TERPILIH</small><h2 id="prizeName">Hadiah kamu</h2></div></div>
+      <p id="prizeNumber"></p>
+      <video id="prizeVideo" controls playsinline preload="none"></video>
+      <button id="againBtn" type="button">↻ &nbsp; PUTAR LAGI</button>
+    </section>
+  </section>
+  <footer class="footer"><span>Made by Ferdy ✦</span><span>RNG aktif · hadiah dipilih secara acak</span></footer>
+</main>
+<script>
+const prizes = [
+{ name: "pak cikini", video: "https://files.catbox.moe/42s3zp.mp4" },
+  { name: "mas rian unjuk bakat", video: "https://files.catbox.moe/8jz8ji.mp4" },
+  { name: "tiga pria hebat", video: "https://files.catbox.moe/3bzggh.mp4" },
+  { name: "pesta bersama", video: "https://files.catbox.moe/6lo2rz.mp4" },
+  { name: "kental manis", video: "https://files.catbox.moe/pnxty4.mp4" }
+];
+const cards = [...document.querySelectorAll(".card")];
+const spinBtn = document.getElementById("spinBtn");
+const statusText = document.getElementById("status");
+const result = document.getElementById("result");
+const prizeName = document.getElementById("prizeName");
+const prizeNumber = document.getElementById("prizeNumber");
+const prizeVideo = document.getElementById("prizeVideo");
+let running = false;
+let timer = null;
+let runToken = 0;
+
+function startGacha(){
+  if(running) return;
+  running = true;
+  const token = ++runToken;
+  spinBtn.disabled = true;
+  result.classList.remove("show");
+  result.style.display = "none";
+  prizeVideo.pause();
+  prizeVideo.removeAttribute("src");
+  prizeVideo.load();
+  cards.forEach(card=>card.classList.remove("active","winner"));
+  statusText.textContent = "Sedang mengacak hadiah…";
+  // Ambil pemenang sebelum animasi, lalu perlambat putaran sampai berhenti tepat.
+  const winner = Math.floor(Math.random()*prizes.length);
+  const start = Math.floor(Math.random()*cards.length);
+  const steps = 22 + winner + Math.floor(Math.random()*5);
+  let tick = 0;
+  function animate(){
+    if(token !== runToken) return;
+    cards.forEach(card=>card.classList.remove("active"));
+    const position = tick < steps - 1
+      ? (start + tick) % cards.length
+      : winner;
+    cards[position].classList.add("active");
+    tick++;
+    if(tick < steps){
+      const progress = tick/steps;
+      const delay = 42 + Math.pow(progress,2.2)*190;
+      timer = window.setTimeout(animate,delay);
+    }else{
+      // Arahkan penanda ke hasil yang benar setelah animasi selesai.
+      cards.forEach(card=>card.classList.remove("active"));
+      cards[winner].classList.add("winner");
+      revealPrize(winner);
+    }
+  }
+  animate();
+}
+function revealPrize(index){
+  const prize = prizes[index];
+  prizeName.textContent = prize.name;
+  prizeNumber.textContent = "DROP " + String(index+1).padStart(2,"0") + " · Selamat, nyet!";
+  statusText.textContent = "Putaran selesai.";
+  result.style.display = "block";
+  requestAnimationFrame(()=>result.classList.add("show"));
+  launchConfetti();
+  prizeVideo.src = prize.video;
+  prizeVideo.load();
+  running = false;
+  spinBtn.disabled = false;
+  prizeVideo.play().catch(()=>{statusText.textContent="Hadiah didapat. Tekan Play untuk menonton.";});
+}
+function launchConfetti(){
+  const colors=["#8de7f0","#8baaff","#f7d58a","#ffffff"];
+  for(let i=0;i<42;i++){
+    const bit=document.createElement("span");
+    bit.className="confetti";
+    bit.style.setProperty("--left",Math.random()*100+"vw");
+    bit.style.setProperty("--color",colors[Math.floor(Math.random()*colors.length)]);
+    bit.style.setProperty("--duration",(1.8+Math.random()*1.8)+"s");
+    bit.style.setProperty("--drift",(Math.random()*180-90)+"px");
+    bit.style.setProperty("--rotate",Math.random()*180+"deg");
+    document.body.appendChild(bit);
+    window.setTimeout(()=>bit.remove(),4000);
+  }
+}
+function resetGacha(){
+  if(running) return;
+  if(timer) window.clearTimeout(timer);
+  prizeVideo.pause();
+  prizeVideo.removeAttribute("src");
+  prizeVideo.load();
+  result.classList.remove("show");
+  result.style.display="none";
+  cards.forEach(card=>card.classList.remove("active","winner"));
+  statusText.textContent="Sistem siap. Semoga hoki, Ferdy.";
+  spinBtn.disabled=false;
+}
+spinBtn.addEventListener("click",startGacha);
+document.getElementById("againBtn").addEventListener("click",resetGacha);
+</script>
+</body>
+</html>
